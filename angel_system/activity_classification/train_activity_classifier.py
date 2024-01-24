@@ -155,13 +155,10 @@ def compute_feats(
         obj_hand_contact_state = []
         obj_hand_contact_conf = []
         
-        if objects_joints or hands_joints:
-            joint_left_hand_offset = []
-            joint_right_hand_offset = []
-            joint_object_offset = []
-        
-        num_hands, num_objects = 0, 0
-        
+        joint_left_hand_offset = []
+        joint_right_hand_offset = []
+        joint_object_offset = []
+
         for ann in ann_by_image[image_id]:
             if "keypoints" in ann.keys():
                 pose_keypoints = ann['keypoints']

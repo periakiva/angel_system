@@ -185,7 +185,6 @@ def obj_det2d_set_to_feature(
             use_intersection=True,
             use_joint_hand_offset=True,
             use_joint_object_offset=True,
-            top_n_objects=top_n_objects
         )
     else:
         raise NotImplementedError(f"Unhandled version '{version}'")
@@ -209,7 +208,6 @@ def obj_det2d_set_to_feature_by_method(
     use_intersection=False,
     use_joint_hand_offset=False,
     use_joint_object_offset=False,
-    top_n_objects=3,
 ):
     """
     `label_vec`, `xs`, `ys`, `ws`, hs` are to all be parallel in association
