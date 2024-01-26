@@ -74,12 +74,7 @@ networkx = ">=3.1"
 tcn-hpl = {path = "/home/local/KHQ/peri.akiva/projects/TCN_HPL", develop = true}
 
 # Yolo v7 object detection
-yolov7 = {path = "/home/local/KHQ/peri.akiva/projects/yolov7", develop = true}
-
-# TODO: new dependencies
-#torch, 1.9
-#detectron, 0.6
-#mmpose, 0.24
+#yolov7 = {path = "python-tpl/yolov7", develop = true}
 
 [tool.poetry.dev-dependencies]
 ipython = "*"
