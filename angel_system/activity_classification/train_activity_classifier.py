@@ -122,9 +122,6 @@ def compute_feats(
     feat_version=1,
     objects_joints: bool =False,
     hands_joints: bool =False,
-    aug_trans_range = None,
-    aug_rot_range = None,
-    top_n_objects=3,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Compute features from object detections
 
@@ -155,19 +152,24 @@ def compute_feats(
         obj_hand_contact_state = []
         obj_hand_contact_conf = []
         
-        joint_left_hand_offset = []
-        joint_right_hand_offset = []
-        joint_object_offset = []
+        if objects_joints or hands_joints:
+            joint_left_hand_offset = []
+            joint_right_hand_offset = []
+            joint_object_offset = []
 
         for ann in ann_by_image[image_id]:
-            if "keypoints" in ann.keys():
-                # print(f"########### this has keypoints #################")
-                if "left_hand_offset" in ann.keys():
-                    joint_left_hand_offset.append(ann['left_hand_offset'])
-                if "right_hand_offset" in ann.keys():
-                    joint_right_hand_offset.append(ann['right_hand_offset'])
-                if "object_offset" in ann.keys():
-                    joint_object_offset.append(ann['object_offset'])
+            
+            if objects_joints or hands_joints:
+                if "keypoints" in ann.keys():
+                    # print(f"########### this has keypoints #################")
+                    if hands_joints:
+                        if "left_hand_offset" in ann.keys():
+                            joint_left_hand_offset.append(ann['left_hand_offset'])
+                        if "right_hand_offset" in ann.keys():
+                            joint_right_hand_offset.append(ann['right_hand_offset'])
+                    if objects_joints:
+                        if "object_offset" in ann.keys():
+                            joint_object_offset.append(ann['object_offset'])
 
             if "confidence" in ann.keys():
                 label_vec.append(act_id_to_str[ann["category_id"]])
@@ -206,37 +208,31 @@ def compute_feats(
             top_n_objects=top_n_objects,
         )
         
-        zero_offset = [0 for i in range(22)]
-        # print(len(zero_offset))
-        offset_vector = []
-        if len(joint_left_hand_offset) >= 1:
-            # print(len(joint_left_hand_offset[0]))
-            # feature_vec.append(joint_left_hand_offset[0])
-            offset_vector += joint_left_hand_offset[0]
-        else:
-            # feature_vec.append(zero_offset)
-            offset_vector += zero_offset
-        
-        if len(joint_right_hand_offset) >= 1:
-            # feature_vec.append(joint_right_hand_offset[0])
-            offset_vector += joint_right_hand_offset[0]
-        else:
-            # feature_vec.append(zero_offset)
-            offset_vector += zero_offset
-        
-        if len(joint_object_offset) >= 1:
-            # feature_vec.append(joint_object_offset[0])
-            offset_vector += joint_object_offset[0]
+        if objects_joints or hands_joints:
+            zero_offset = [0 for i in range(22)]
+            offset_vector = []
+            if hands_joints:
+                if len(joint_left_hand_offset) >= 1:
+                    offset_vector += joint_left_hand_offset[0]
+                else:
+                    offset_vector += zero_offset
+                
+                if len(joint_right_hand_offset) >= 1:
+                    offset_vector += joint_right_hand_offset[0]
+                else:
+                    offset_vector += zero_offset
+            if objects_joints:
+                if len(joint_object_offset) >= 1:
+                    offset_vector += joint_object_offset[0]
 
-        else:
-            # feature_vec.append(zero_offset)
-            offset_vector += zero_offset
+                else:
+                    offset_vector += zero_offset
 
+            feature_vec += offset_vector
             
             
         # print(f"offset_vector: {len(offset_vector)}")
         
-        feature_vec += offset_vector
             
         feature_vec = np.array(feature_vec, dtype=np.float64)
         
