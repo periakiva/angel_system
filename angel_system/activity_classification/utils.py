@@ -243,7 +243,7 @@ def obj_det2d_set_to_feature_by_method(
     # Data
     #########################
     # Number of object detection classes
-    num_det_classes = len(label_to_ind) + 1 # accomedate 2 hands instead of 1
+    num_det_classes = len(label_to_ind) + 1 # accomedate 2 hands instead of 1, accomedate top 3 objects
     
     # modify label_to_ind dict to accomedate 2 hands instead of 1
     if "hands" in label_to_ind.keys():
@@ -263,7 +263,7 @@ def obj_det2d_set_to_feature_by_method(
     # print(f'label_confidences: {label_confidences}, label_to_ind_tmp: {label_to_ind_tmp}')
     # exit()
     # print(f"num_det_classes: {num_det_classes}")
-    
+    top_n_objects = 3
     # Maximum confidence observe per-class across input object detections.
     # If a class has not been observed, it is set to 0 confidence.
     det_class_max_conf = np.zeros((num_det_classes, top_n_objects))
@@ -277,14 +277,33 @@ def obj_det2d_set_to_feature_by_method(
     # Record the most confident detection for each object class as recorded in
     # `label_to_ind` (confidence & bbox)
     if hands_label_exists:
+        hands_loc_dict = {}
         for i, label in enumerate(label_vec):
             if label == "hands":
                 hand_center = xs[i] + ws[i]//2
                 if hand_center < image_center:
-                    label_vec[i] = "hands (left)"
+                    if "hands (left)" not in hands_loc_dict.keys():
+                        label_vec[i] = "hands (left)"
+                        hands_loc_dict[label_vec[i]] = (hand_center, i)
+                    else:
+                        if hand_center > hands_loc_dict["hands (left)"][0]:
+                            label_vec[i] = "hands (right)"
+                            hands_loc_dict[label_vec[i]] = (hand_center, i)
                 else:
-                    label_vec[i] = "hands (right)"
+                    if "hands (right)" not in hands_loc_dict.keys():
+                        label_vec[i] = "hands (right)"
+                        hands_loc_dict[label_vec[i]] = (hand_center, i)
+                    else:
+                        if hand_center < hands_loc_dict["hands (right)"][0]:
+                            label_vec[i] = "hands (right)"
+                            hands_loc_dict[label_vec[i]] = (hand_center, i)
+                    # label_vec[i] = "hands (right)"
+            elif label == "tourniquet_label":
+                label_vec[i] = "tourniquet_tourniquet"
+            elif label == "tourniquet_windlass":
+                label_vec[i] = "tourniquet_tourniquet"
     
+    # print(f"label vec: {label_vec}")
     for i, label in enumerate(label_vec):
         if label in label_to_ind:
             conf = label_confidences[i]
@@ -312,6 +331,7 @@ def obj_det2d_set_to_feature_by_method(
                 det_class_bbox[obj_index, ind] = [xs[i], ys[i], ws[i], hs[i]]  # xywh
 
     det_class_kwboxes = kwimage.Boxes(det_class_bbox, "xywh")
+    # print(f"det_class_kwboxes: {det_class_kwboxes.shape}")
     # print(f'label_vec: {label_vec}')
     #########################
     # util functions
@@ -320,8 +340,8 @@ def obj_det2d_set_to_feature_by_method(
         # hand_str = "hands"
         hand_idx = label_to_ind[hand_str]
         # print(f"hand_index: {hand_idx}")
-        hand_conf = det_class_max_conf[hand_idx]
-        hand_bbox = kwimage.Boxes([det_class_bbox[hand_idx]], "xywh")
+        hand_conf = det_class_max_conf[hand_idx][0]
+        hand_bbox = kwimage.Boxes([det_class_bbox[0, hand_idx]], "xywh")
 
         return hand_idx, hand_bbox, hand_conf, hand_bbox.center
 
