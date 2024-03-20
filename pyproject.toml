@@ -77,6 +77,7 @@ kwcoco = ">=0.6.2"
 kwimage = ">=0.9.18"
 networkx = ">=3.1"
 
+
 # TCN Activity classifier /home/local/KHQ/peri.akiva/projects/TCN_HPL
 tcn-hpl = {path = "/home/local/KHQ/peri.akiva/projects/TCN_HPL", develop = true}
 
